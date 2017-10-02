@@ -1,7 +1,8 @@
 from knn import *
 
 data = Dataset(read_chips(), shuffle=True)
-# plot_chips()
+plot_chips()
+voronoi_chips()
 
 
 def test(k, dist, method, kernel):
@@ -10,7 +11,7 @@ def test(k, dist, method, kernel):
     for train, valid in data.LOO():
         model = KNearestNeighborClassifier(k, distance=dist, method=method, classes=2, kernel=kernel)
         model.train(train)
-        # valid = np.asarray([valid], dtype=float)
+        valid = np.asarray([valid], dtype=float)
         F1 += model.F1(valid)
         n += 1
     return F1 / n

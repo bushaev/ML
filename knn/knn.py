@@ -9,6 +9,8 @@ class KNearestNeighborClassifier:
         self.d = None
         self.classes = range(classes)
         self.kernel = kernel
+        if kernel:
+            self.k += 1
         if method == 'brute':
             self.method = brute_force
         elif method is 'kd_tree':
@@ -25,25 +27,25 @@ class KNearestNeighborClassifier:
                 self.method = self.tree.query
 
     def predict(self, x, plot=False):
-        if self.kernel is None:
-            neighbors = self.method(self.points, x, self.distance, self.k)
+        neighbors = self.method(self.points, x, self.distance, self.k)
 
-            if plot:
-                plt.plot(x[0], x[1], 'go')
-                x_data = self.points[:, 0]
-                y_data = self.points[:, 1]
-                plt.plot(x_data, y_data, 'ko')
-                xx = neighbors[:, 0]
-                yy = neighbors[:, 1]
-                cc = neighbors[:, 2]
-                plt.plot(xx[cc == 0], yy[cc == 0], 'ro', xx[cc == 1], yy[cc == 1], 'bo')
-                plt.show()
+        if plot:
+            plt.plot(x[0], x[1], 'go')
+            x_data = self.points[:, 0]
+            y_data = self.points[:, 1]
+            plt.plot(x_data, y_data, 'ko')
+            xx = neighbors[:, 0]
+            yy = neighbors[:, 1]
+            cc = neighbors[:, 2]
+            plt.plot(xx[cc == 0], yy[cc == 0], 'ro', xx[cc == 1], yy[cc == 1], 'bo')
+            plt.show()
+
+        if not self.kernel:
             return most_common(neighbors[:, self.d])
         else:
             scores = []
+            m_dist = self.distance(x[:self.d], neighbors[-1][:self.d])
             for y in self.classes:
-                neighbors = self.method(self.points, x, self.distance, self.k + 1)
-                m_dist = self.distance(x[:self.d], neighbors[-1][:self.d])
                 s = [int(n[-1] == y) * self.kernel(self.distance(x[:self.d], n[:self.d]) / m_dist)
                      for n in neighbors[:-1]]
                 scores.append(sum(s))
