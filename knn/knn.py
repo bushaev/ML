@@ -9,8 +9,6 @@ class KNearestNeighborClassifier:
         self.d = None
         self.classes = range(classes)
         self.kernel = kernel
-        if kernel:
-            self.k += 1
         if method == 'brute':
             self.method = brute_force
         elif method is 'kd_tree':
@@ -44,10 +42,9 @@ class KNearestNeighborClassifier:
             return most_common(neighbors[:, self.d])
         else:
             scores = []
-            m_dist = self.distance(x[:self.d], neighbors[-1][:self.d])
             for y in self.classes:
-                s = [int(n[-1] == y) * self.kernel(self.distance(x[:self.d], n[:self.d]) / m_dist)
-                     for n in neighbors[:-1]]
+                s = [int(n[-1] == y) * self.kernel(self.distance(x[:self.d], n[:self.d]))
+                     for n in neighbors]
                 scores.append(sum(s))
             return float(np.argmax(scores))
 

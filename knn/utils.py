@@ -95,7 +95,7 @@ class KDTree:
         self.root = self.setup_tree(data, 0)
 
     def display(self, node, depth):
-        print ("  " * depth, node.element)
+        print("  " * depth, node.element)
 
         if node.leaf():
             return
@@ -146,6 +146,13 @@ class KDTree:
         return result_r
 
 
+def transform_data(data, f):
+    ndata = []
+    for x in data:
+        ndata.append(np.concatenate(([f(x)], x)))
+    return np.asarray(ndata)
+
+
 def gaussian_kernel(t):
     return np.exp(-0.5 * t) / np.sqrt(2 * np.pi)
 
@@ -157,3 +164,6 @@ def some_other_kernel(t):
     else:
         return 0
 
+
+def exp_kernel(d):
+    return np.exp(-d);
