@@ -54,21 +54,21 @@ print("Manhattan distance F1 ", TK_CV(t=10, k=k, dist=manhattan_distance, method
 
 # Try kernels
 print("Gaussian kernel F1 ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel))
-print("Some other hard-to-spell kernel F1 ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=some_other_kernel))
+print("Some other hard-to-spell kernel F1 ",
+      TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=some_other_kernel))
 print("Best accuracy - ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel, accuracy=True))
 
 # Try data transform with kernels (multiply)
 data = np.asarray(read_chips(), dtype=float)
-ndata = transform_data(data, lambda p: np.abs(p[0] * p[1]))
+ndata = transform_data(data, lambda p: (p[0] * p[1]))
 data = Dataset(ndata)
 
-print("Data transform(multiply) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=exp_kernel))
+print("Data transform(multiply) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=None))
 plot_transform(ndata)
 
 # Data transform (addition)
 data = np.asarray(read_chips(), dtype=float)
-ndata = transform_data(data, lambda p: p[0] + p[1])
+ndata = transform_data(data, lambda p: (p[0]) ** 2 + (p[1]) ** 2)
 data = Dataset(ndata)
-print("Data transform(addition) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=exp_kernel))
+print("Data transform(cone) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel))
 plot_transform(ndata)
-
