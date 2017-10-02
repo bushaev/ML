@@ -4,9 +4,10 @@ from utils import *
 
 class DistanceTest(unittest.TestCase):
     def test_euclid(self):
-        x = [(0, 0), (1, 1)]
+        x = np.random.randint(-500, 500, size=(2, 2))
         dist = euclid_distance(x[0], x[1])
-        self.assertAlmostEqual(dist, np.sqrt(2))
+        dist_np = np.linalg.norm(x[0] - x[1])
+        self.assertAlmostEqual(dist, dist_np)
 
     def test_manhattan(self):
         x = [(0, 0), (1, 1)]
