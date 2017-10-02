@@ -167,3 +167,23 @@ def some_other_kernel(t):
 
 def exp_kernel(d):
     return np.exp(-d);
+
+
+def plot_transform(ndata):
+    # Weird python gives error without this import
+    from mpl_toolkits.mplot3d import Axes3D
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    x = ndata[:, 0]
+    y = ndata[:, 1]
+    z = ndata[:, 2]
+    c = ndata[:, 3]
+
+    ax.scatter(x[c == 0], y[c == 0], z[c == 0], 'ro')
+    ax.scatter(x[c == 1], y[c == 1], z[c == 1], 'bo')
+    ax.set_xlabel('new_label')
+    ax.set_ylabel('X Label')
+    ax.set_zlabel('Y Label')
+    plt.show()
