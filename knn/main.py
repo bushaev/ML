@@ -38,37 +38,49 @@ def CV(k, dist, method, kernel, accuracy=False):
 ##############
 ## Find best k
 ##############
+
+metrics = {
+    'euclid' : euclid_distance,
+    'manhattan' : manhattan_distance
+}
+
+best_k = 1
+best_kernel = gaussian_kernel
+best_metric = euclid_distance
+best_f = 0
+best_t = None
+for t in [None, 1, 2]:
+    if t == 1:
+        data = np.asarray(read_chips(), dtype=float)
+        ndata = transform_data(data, lambda p: (p[0] * p[1]))
+        data = Dataset(ndata)
+    elif t == 2:
+        data = np.asarray(read_chips(), dtype=float)
+        ndata = transform_data(data, lambda p: (p[0]) ** 2 + (p[1]) ** 2)
+        data = Dataset(ndata)
+
+    for k in range(1, 10):
+        for kernel in [gaussian_kernel, some_other_kernel]:
+            for metric in ['euclid', 'manhattan']:
+                f = TK_CV(10, k=k, dist=metrics[metric], method='brute', kernel=kernel)
+                # print ("K:", k, " kernel:", kernel, " metric:", metric, " F1:", f)
+
+                if f > best_f:
+                    best_k = k
+                    best_f = f
+                    best_kernel = kernel
+                    best_metric = metric
+                    best_t = t
+
+
+print("K:", best_k, " kernel:", best_kernel.__name__, " metric:", best_metric, " T:", best_t, " F1:", best_f)
+
+Ks = []
 F1s = []
-for k in range(1, 20):
-    F1s.append(TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=None))
+for k in range(1, 40):
+    F1 = TK_CV(10, k=k, dist=metrics[best_metric], method='brute', kernel=best_kernel)
+    F1s.append(F1)
+    Ks.append(k)
 
-k = np.argmax(F1s) + 1
-print("Best k is ", k, " with f1 measure ", F1s[k - 1])
-
-# Try KDTree
-print("F1 Measure with kd_tree is ", TK_CV(t=10, k=k, dist=euclid_distance, method='kd_tree', kernel=None))
-
-# Try different metrics
-print("Euclid distance F1 ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=None))
-print("Manhattan distance F1 ", TK_CV(t=10, k=k, dist=manhattan_distance, method='brute', kernel=None))
-
-# Try kernels
-print("Gaussian kernel F1 ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel))
-print("Some other hard-to-spell kernel F1 ",
-      TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=some_other_kernel))
-print("Best accuracy - ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel, accuracy=True))
-
-# Try data transform with kernels (multiply)
-data = np.asarray(read_chips(), dtype=float)
-ndata = transform_data(data, lambda p: (p[0] * p[1]))
-data = Dataset(ndata)
-
-print("Data transform(multiply) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=None))
-plot_transform(ndata)
-
-# Data transform (addition)
-data = np.asarray(read_chips(), dtype=float)
-ndata = transform_data(data, lambda p: (p[0]) ** 2 + (p[1]) ** 2)
-data = Dataset(ndata)
-print("Data transform(cone) with kernels ", TK_CV(t=10, k=k, dist=euclid_distance, method='brute', kernel=gaussian_kernel))
-plot_transform(ndata)
+plt.plot(Ks, F1s)
+plt.show()
