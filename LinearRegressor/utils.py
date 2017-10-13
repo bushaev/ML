@@ -30,15 +30,19 @@ def plot_data():
     plt.show()
 
 
-def plot_final(xx, yy, zz):
+def plot_final(xx, yy, zz, norm=True):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
     x, y = read_data()
     x1, x2 = x[:, 0], x[:, 1]
+    if norm:
+        x1 = (x1 - np.mean(x1)) / np.std(x1)
+        x2 = (x2 - np.mean(x2)) / np.std(x2)
 
     ax.scatter(x1, x2, y)
-    ax.plot_trisurf(xx, yy, zz, color='r', alpha=0.2)
+
+    ax.plot_surface(xx, yy, zz, color='r', alpha=0.05)
 
     ax.set_xlabel('area')
     ax.set_ylabel('room')
@@ -49,7 +53,7 @@ def plot_final(xx, yy, zz):
 class SquareError:
     class SolveOptimizer:
         def optimize(self, X, y, lr, w, cost):
-            return np.dot(np.dot(np.linalg.inv(np.dot(X.transpose(), X)), X.transpose()), y)
+            return np.dot(np.dot(np.linalg.pinv(np.dot(X.transpose(), X)), X.transpose()), y)
 
         def __str__(self):
             return 'equation'
@@ -76,3 +80,68 @@ class SGD:
 
     def __str__(self):
         return 'SGD'
+
+
+class GeneticOptimizer:
+    def __init__(self, mutant_rate, population_size, generations):
+        self.mutant_rate = mutant_rate
+        self.population_size = population_size
+        self.generations = generations
+
+    def create_individual(self, parents):
+        np.random.shuffle(parents)
+        ind = np.random.randint(0, len(parents[0]))
+        return np.concatenate((parents[0][:ind], parents[1][ind:]))
+
+    def mutate_individual(self, individual):
+        coefs = np.random.uniform(0.0, 2.0, size=len(individual))
+        return individual * coefs
+
+    def mutate_population(self, population):
+        length = len(population)
+        np.random.shuffle(population)
+
+        for i in range(int(length * self.mutant_rate)):
+            population[i] = self.mutate_individual(population[i])
+
+        return population
+
+    def create_population(self, population):
+        inds = np.arange(0, len(population))
+
+        new_population = []
+        for i in range(self.population_size):
+            np.random.shuffle(inds)
+            new_population.append(self.create_individual([population[inds[0]], population[inds[1]]]))
+
+        return new_population
+
+    def compute_cost(self, cost, X, y, w):
+        pred = np.dot(X, w)
+        return cost.compute(pred, y)
+
+    def key_function(self, X, y, cost):
+        def f(w):
+            return self.compute_cost(cost, X, y, w)
+
+        return f
+
+    def optimize(self, X, y, lr, w, cost):
+
+        population = [np.random.uniform(-500, 500, size=len(w)) for _ in range(self.population_size)]
+        costs = []
+        for i in range(self.generations):
+            kids = self.create_population(population)
+            self.mutate_population(kids)
+
+            new_population = np.concatenate((population, kids))
+            population = sorted(new_population, key=self.key_function(X, y, cost))[:self.population_size]
+            costs.append(self.compute_cost(cost, X, y, population[0]))
+
+        gens = np.arange(1, len(costs) + 1)
+        plt.plot(gens, costs)
+        plt.show()
+        return population[0]
+
+    def __str__(self):
+        return 'genetic'
