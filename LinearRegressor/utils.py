@@ -60,7 +60,7 @@ class SquareError:
 
     @staticmethod
     def compute(pred, y):
-        return (1 / (2 * len(y))) * sum((y - pred) ** 2)
+        return (1 / (len(y))) * sum((y - pred) ** 2)
 
     @staticmethod
     def solve_optimizer():
@@ -128,7 +128,10 @@ class GeneticOptimizer:
 
     def optimize(self, X, y, lr, w, cost):
 
-        population = [np.random.uniform(-500, 500, size=len(w)) for _ in range(self.population_size)]
+        m = X.min(axis=0)
+        max_y = y.max()
+
+        population = [[np.random.uniform(-max_y / m[j], max_y / m[j]) for j in range(len(w))] for _ in range(self.population_size)]
         costs = []
         for i in range(self.generations):
             kids = self.create_population(population)
@@ -145,3 +148,16 @@ class GeneticOptimizer:
 
     def __str__(self):
         return 'genetic'
+
+
+class Scaler:
+    def __init__(self):
+        self.mean = None
+        self.std = None
+
+    def fit(self, X):
+        self.mean = np.mean(X, axis=0)
+        self.std = np.std(X, axis=0)
+
+    def transform(self, X):
+        return (X - self.mean) / self.std
