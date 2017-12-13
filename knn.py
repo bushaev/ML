@@ -1,8 +1,13 @@
-from utils import *
+from neighbors import (brute_force, KDTree)
+from dist import euclid_dist
+from utils import most_common
+from metrics import f1_score, accuracy
 
+import numpy as np
+import matplotlib.pyplot as plt
 
 class KNearestNeighborClassifier:
-    def __init__(self, k, distance=euclid_distance, method='brute', classes=2, kernel=None):
+    def __init__(self, k, distance=euclid_dist, method='brute', classes=2, kernel=None):
         self.k = k
         self.points = None
         self.distance = distance
@@ -15,7 +20,7 @@ class KNearestNeighborClassifier:
             self.tree = None
             self.method = 'kd_tree'
 
-    def train(self, p):
+    def fit(self, p):
         if len(p) > 0:
             self.points = p
             self.d = len(p[0]) - 1
@@ -59,29 +64,12 @@ class KNearestNeighborClassifier:
         FP = sum((pred == 1) & (labels == 0))
         FN = sum((pred == 0) & (labels == 1))
 
-        return [TP, FP, TN, FN]
+        return [TP, FN, FP, TN]
 
     def accuracy(self, test_data):
-        TP, FP, TN, FN = self.contingency_table(test_data)
-        P = TP + FN
-        N = FP + TN
-
-        return (TP + TN) / (P + N)
+        pred = self.test(test_data)
+        labels = test_data[:, self.d]
+        return accuracy(labels, pred)
 
     def F1(self, test_data):
-        TP, FP, TN, FN = self.contingency_table(test_data)
-        P = TP + FN
-        N = FP + TN
-
-        if P == 0:
-            recall = 1
-        else:
-            recall = TP / P
-
-        if TP + FP == 0:
-            precision = 1
-        else:
-            precision = TP / (TP + FP)
-
-        F1 = 2 * precision * recall / (precision + recall)
-        return F1
+        return f1_score(self.contingency_table(test_data))

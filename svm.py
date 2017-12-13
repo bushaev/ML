@@ -1,7 +1,11 @@
-from utils import *
+from utils import GaussianKernel
+from loss import SVMLoss
+from metrics import f1_score
+import matplotlib.pyplot as plt
+import numpy as np
 
 class SVM:
-    def __init__(self, C, kernel):
+    def __init__(self, C, kernel=GaussianKernel()):
         self.loss = SVMLoss(C)
         self.kernel = kernel
         self.landmarks = None
@@ -52,10 +56,4 @@ class SVM:
     def f1(self, X, y, cm=None):
         cm = cm or self.confusion_matrix(X, y)
 
-        TP, FN, FP, TN = cm
-
-        recall = TP / (TP + FN + 1e-15)
-        precision = TP / (TP + FP + 1e-15)
-
-        f1 = 2 * precision * recall / (precision + recall + 1e-15)
-        return f1
+        return f1_score(cm)

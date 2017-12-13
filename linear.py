@@ -1,12 +1,12 @@
+from loss import RMSE
+from utils import Scaler
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import *
-
 
 class LinearRegressor:
-    def __init__(self, n, cost=SquareError):
+    def __init__(self, n, cost=RMSE()):
         self.n = n
-        self.w = np.random.randn(n + 1) * 10000
+        self.w = np.random.randn(n + 1)
         self.normalize = True
         self.cost = cost
         self.scaler = Scaler()
@@ -21,38 +21,33 @@ class LinearRegressor:
         return np.dot(X, self.w)
 
     def predict(self, X):
-        X = self.preprocess(X)
+        if np.sum(X[:, 0] == 1) != X.shape[0]:
+            X = self.preprocess(X)
         return self.predict_preproccessed(X)
 
     def ccost(self, X, y):
         X = self.preprocess(X)
         return self.cost.compute(self.predict_preproccessed(X), y)
 
-    def fit(self, X, y, optimizer, lr, delta_c, max_iter=None):
+    def fit(self, X, y, optimizer, epoch, plot):
         if str(optimizer) == 'equation' or str(optimizer) == 'genetic':
             self.normalize = False
+
+        if str(optimizer) == 'genetic':
+            optimizer.pr = lambda X, w : np.dot(X, w)
 
         self.scaler.fit(X)
         X = self.preprocess(X)
 
-        cs = [self.cost.compute(self.predict_preproccessed(X), y)]
-        i = [1]
-        count = 0
-        while len(cs) is 1 or cs[-2] - cs[-1] > delta_c:
-            count += 1
-            self.w = optimizer.optimize(X, y, lr, self.w, self.cost)
-            cs.append(self.cost.compute(self.predict_preproccessed(X), y))
-            i.append(i[-1] + 1)
+        loss = [self.cost.compute(self.predict_preproccessed(X), y)]
+        for _ in range(epoch):
+            self.w = optimizer.optimize(X, y, self.w, self.cost)
+            loss.append(self.cost.compute(self.predict_preproccessed(X), y))
 
-            if max_iter and len(i) > max_iter:
-                break
-
-        print("count, ", count)
-
-        if str(optimizer) == 'SGD':
+        if plot:
             plt.xlabel('iterations')
             plt.ylabel('Emperical risk')
             plt.title('Emperical rist optimization')
-            plt.plot(i, cs)
+            plt.plot(np.arange(epoch + 1), loss)
             plt.show()
 

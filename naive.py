@@ -47,7 +47,7 @@ class SpamClissifier(NaiveBayes):
         self.threshold = 0
 
     def get_features(self, filename):
-        with open('Bayes/pu1/' + filename) as f:
+        with open('data/Bayes/pu1/' + filename) as f:
             words = f.read().replace('\n', ' ').split()[1:]
             numbers = [int(w) for w in words]
 
